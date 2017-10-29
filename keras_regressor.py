@@ -8,16 +8,23 @@ from keras.layers.normalization import BatchNormalization
 from keras.callbacks import TensorBoard
 
 input_filename = './input_data/filtered.csv'
+target_filename = './input_data/target.csv'
 log_dir = './logs/simple-net'
 board = TensorBoard(log_dir=log_dir, write_graph=True, write_grads=True, write_images=True)
 
 input_data = pd.read_csv(input_filename)
-X = input_data.iloc[:, 0:4].values
-Y = input_data.iloc[:, [5]].values
+normalized_input = (input_data - input_data.min()) / (input_data.max() - input_data.min())
+X = normalized_input.iloc[:, 0:5].values
+Y = normalized_input.iloc[:, [5]].values
+
+target_data = pd.read_csv(target_filename)
+explanatories = input_data.iloc[1:, 0:5]
+normalized_target = ((target_data - explanatories.min()) / (explanatories.max() - explanatories.min())).values
+
 
 def regression_model():
     model = Sequential()
-    model.add(Dense(4, activation='relu', input_dim=4))
+    model.add(Dense(5, activation='relu', input_dim=5))
     model.add(BatchNormalization())
     model.add(Dense(3, activation='relu'))
     model.add(BatchNormalization())
@@ -29,4 +36,20 @@ def regression_model():
 
 model = regression_model()
 print(model.summary())
-model.fit(X, Y, epochs=10000, verbose=2, validation_split=0.1, shuffle=True, callbacks=[board])
+model.fit(X, Y, epochs=2500, verbose=2, validation_split=0.1, shuffle=True, callbacks=[board])
+results = model.predict(normalized_target)
+
+
+def denormalize(normalized_price):
+    min_price = input_data.min()[5]
+    max_price = input_data.max()[5]
+    return (max_price - min_price) * normalized_price + min_price
+
+
+print(results)
+estimated_prices = [
+    denormalize(results[0][0]),
+    denormalize(results[1][0]),
+    denormalize(results[2][0])
+]
+print(estimated_prices)
