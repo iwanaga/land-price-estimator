@@ -7,6 +7,8 @@
 ## data source
 [国土交通省 国土数値情報 地価公示データ](http://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-L01-v2_3.html)
 - 販売者が上乗せするマージンは含まれない
+- 学習対象の地域を茨城県に絞っている
+- 商業用の広すぎる土地や駅から遠すぎる土地を除いた
 
 ## how to use
 ```bash
